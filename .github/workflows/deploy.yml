@@ -1,0 +1,81 @@
+name: Deploy to VPS
+
+on:
+  push:
+    branches:
+      - main
+
+permissions:
+  contents: read
+
+# 連続pushで複数のデプロイが同時に走らないようにする
+concurrency:
+  group: deploy-production
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v5
+        with:
+          persist-credentials: false
+
+      - name: Check required secrets
+        env:
+          VPS_HOST: ${{ secrets.VPS_HOST }}
+          VPS_USER: ${{ secrets.VPS_USER }}
+          VPS_SSH_PRIVATE_KEY: ${{ secrets.VPS_SSH_PRIVATE_KEY }}
+          VPS_DEPLOY_PATH: ${{ secrets.VPS_DEPLOY_PATH }}
+        run: |
+          missing=0
+          for name in VPS_HOST VPS_USER VPS_SSH_PRIVATE_KEY VPS_DEPLOY_PATH; do
+            if [ -z "${!name}" ]; then
+              echo "::error::Secret ${name} is not set."
+              missing=1
+            fi
+          done
+          exit "${missing}"
+
+      - name: Set up SSH key and known_hosts
+        env:
+          VPS_HOST: ${{ secrets.VPS_HOST }}
+          VPS_SSH_PRIVATE_KEY: ${{ secrets.VPS_SSH_PRIVATE_KEY }}
+        run: |
+          install -d -m 700 ~/.ssh
+          umask 077
+          printf '%s\n' "${VPS_SSH_PRIVATE_KEY}" > ~/.ssh/deploy_key
+          chmod 600 ~/.ssh/deploy_key
+
+          ssh-keyscan -H "${VPS_HOST}" > ~/.ssh/known_hosts 2>/dev/null
+          if [ ! -s ~/.ssh/known_hosts ]; then
+            echo "::error::Failed to fetch host key from VPS."
+            exit 1
+          fi
+          chmod 600 ~/.ssh/known_hosts
+
+      - name: Deploy with rsync
+        env:
+          VPS_HOST: ${{ secrets.VPS_HOST }}
+          VPS_USER: ${{ secrets.VPS_USER }}
+          VPS_DEPLOY_PATH: ${{ secrets.VPS_DEPLOY_PATH }}
+        run: |
+          # --delete は使用しない（サーバー上の既存ファイルを削除しない）
+          # -p/-o/-g を付けず、既存ファイルのパーミッション・所有者は変更しない
+          rsync -rltz --checksum --omit-dir-times --itemize-changes \
+            --exclude='/.git/' \
+            --exclude='/.github/' \
+            --exclude='.gitignore' \
+            --exclude='README*' \
+            --exclude='readme.html' \
+            --exclude='.DS_Store' \
+            --exclude='/news/.htaccess' \
+            -e "ssh -i ${HOME}/.ssh/deploy_key -o IdentitiesOnly=yes -o BatchMode=yes -o StrictHostKeyChecking=yes -o UserKnownHostsFile=${HOME}/.ssh/known_hosts" \
+            ./ "${VPS_USER}@${VPS_HOST}:${VPS_DEPLOY_PATH}/"
+
+      - name: Clean up SSH key
+        if: always()
+        run: rm -f ~/.ssh/deploy_key ~/.ssh/known_hosts
