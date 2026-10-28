@@ -43,7 +43,7 @@
     <h3 class="title-l">NEWS <span>お知らせ</span></h3>
        <ul class="topnews_list">
         
-            <li><a href="./osechi2025.php"><span>2025.10.28</span>おせち&オードブルのご案内</a></li>
+            <li><a href="./osechi2025.php"><span>2026.10.28</span>おせち&オードブルのご案内</a></li>
             
        </ul>
     </div>

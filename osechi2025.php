@@ -47,7 +47,7 @@
 </div>
 </div>
 
-<h3 class="pagetitle">2025年 おせち&オードブル</h3>
+<h3 class="pagetitle">2026年 おせち&オードブル</h3>
 
 <div class="block m-t-40">
     <div class="contents">
