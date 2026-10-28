@@ -17,8 +17,7 @@ $iwaizen = [
 
     ['name'=>'祝弁当','price' => 2000,'takeout'=>true,'img'=>'takeout/1_2000_i.jpg','tax'=>true],
   //  ['name'=>'祝弁当','price' => 1500,'takeout'=>true,'img'=>'takeout/2_1500_i.jpg','tax'=>true],
-    ['name'=>'赤飯','price' => 1000,'takeout'=>true,'img'=>'iwaizen/6_1000.jpg','tax'=>true],
-    ['name'=>'赤飯','price' => 500,'takeout'=>true,'img'=>'iwaizen/7_500.jpg','tax'=>true],
+    ['name'=>'赤飯','price' => 700,'takeout'=>true,'img'=>'iwaizen/7_500.jpg','tax'=>true],
 ];
 
 $butsuzen = [

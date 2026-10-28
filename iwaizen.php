@@ -1,5 +1,5 @@
 <?php 
-	include './inc/price.php';
+	include './inc/price.php?'.time();
 ?>
 <!doctype html>
 <html lang="ja">
